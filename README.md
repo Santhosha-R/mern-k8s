@@ -105,7 +105,7 @@ helm install frontend CICD/deploy/helm/frontend -n frontend --create-namespace \
 
 ### 2.3 Validate
 ```bash
-kubectl get pods -n database -n backend -n frontend          # all Running 1/1
+for ns in database backend frontend; do kubectl get pods -n $ns; done   # all Running 1/1
 kubectl run t --rm -i --image=curlimages/curl:8.10.1 -n backend --restart=Never -- \
   curl -s http://backend:3000/healthz                        # {"status":"ok","dbStatus":"connected"}
 ```

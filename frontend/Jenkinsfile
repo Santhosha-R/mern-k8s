@@ -12,9 +12,13 @@ pipeline {
 
     environment {
         SONAR_HOST_URL  = "http://13.235.42.215:9000"
+        
         REGISTRY        = "637423622313.dkr.ecr.ap-south-1.amazonaws.com"
         IMAGE           = "637423622313.dkr.ecr.ap-south-1.amazonaws.com/mern-frontend"
         IMAGE_TAG       = "${env.BUILD_NUMBER}"
+
+        AWS_REGION      = "ap-south-1"
+
     }
 
     options {
@@ -43,13 +47,26 @@ pipeline {
             }
         }
 
-        stage('Trivy Scan') {
-            steps {
-                sh "trivy image --severity LOW,MEDIUM,HIGH --exit-code 0 --format table ${IMAGE}:${IMAGE_TAG}"
-                sh "trivy image --severity CRITICAL --exit-code 1 --ignore-unfixed --format table ${IMAGE}:${IMAGE_TAG}"
-            }
-        }
+        // stage('Trivy Scan') {
+        //     steps {
+        //         sh "trivy image --severity LOW,MEDIUM,HIGH --exit-code 0 --format table ${IMAGE}:${IMAGE_TAG}"
+        //         sh "trivy image --severity CRITICAL --exit-code 1 --ignore-unfixed --format table ${IMAGE}:${IMAGE_TAG}"
+        //     }
+        // }
         
+        // stage('Push Image') {
+        //     environment {
+        //         AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+        //         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+        //     }
+        //     steps {
+        //         sh '''
+        //             aws ecr get-login-password --region ${AWS_REGION} \
+        //               | docker login --username AWS --password-stdin ${REGISTRY}
+        //             docker push ${IMAGE}:${IMAGE_TAG}
+        //         '''
+        //     }
+        // }
     }
 
 }

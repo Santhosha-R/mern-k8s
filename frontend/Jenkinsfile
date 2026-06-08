@@ -11,7 +11,10 @@ pipeline {
     agent any
 
     environment {
-        SONAR_HOST_URL  = "http://13.126.85.161:9000"
+        SONAR_HOST_URL  = "http://13.235.42.215:9000"
+        REGISTRY        = "637423622313.dkr.ecr.ap-south-1.amazonaws.com"
+        IMAGE           = "637423622313.dkr.ecr.ap-south-1.amazonaws.com/mern-frontend"
+        IMAGE_TAG       = "${env.BUILD_NUMBER}"
     }
 
     options {
@@ -29,6 +32,21 @@ pipeline {
                 withCredentials([string(credentialsId: 'sonar_token', variable: 'SONAR_TOKEN')]) {
                     sh "cd frontend; sonar -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_TOKEN}"
                 }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                script {
+                    image = docker.build("${IMAGE}:${IMAGE_TAG}", "--no-cache .")
+                }
+            }
+        }
+
+        stage('Trivy Scan') {
+            steps {
+                sh "trivy image --severity LOW,MEDIUM,HIGH --exit-code 0 --format table ${IMAGE}:${IMAGE_TAG}"
+                sh "trivy image --severity CRITICAL --exit-code 1 --ignore-unfixed --format table ${IMAGE}:${IMAGE_TAG}"
             }
         }
         

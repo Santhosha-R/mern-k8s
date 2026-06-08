@@ -70,11 +70,7 @@ pipeline {
             }
         }
 
-        stage('Helm Deploy') {
-            steps {
-                withCredentials([file(credentialsId: 'kubeconfig-file')])
-            }
-        }
+       
     }
 
 }

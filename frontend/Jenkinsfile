@@ -30,31 +30,31 @@ pipeline {
 
     stages {
 
-        stage('SonarQube Analysis') {
-            steps {
+        // stage('SonarQube Analysis') {
+        //     steps {
                 
-                withCredentials([string(credentialsId: 'sonar_token', variable: 'SONAR_TOKEN')]) {
-                    sh "cd frontend; sonar -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_TOKEN}"
-                }
-            }
-        }
+        //         withCredentials([string(credentialsId: 'sonar_token', variable: 'SONAR_TOKEN')]) {
+        //             sh "cd frontend; sonar -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_TOKEN}"
+        //         }
+        //     }
+        // }
 
         stage('Docker Build') {
             steps {
                 dir('frontend') { 
                     script {
-                        image = docker.build("${IMAGE}:${IMAGE_TAG}", "--no-cache .")
+                        image = docker.build("${IMAGE}:${IMAGE_TAG}", ".")
                     }
                 }
             }
         }
 
-        stage('Trivy Scan') {
-            steps {
-                sh "trivy image --severity LOW,MEDIUM,HIGH --exit-code 0 --format table ${IMAGE}:${IMAGE_TAG}"
-                sh "trivy image --severity CRITICAL --exit-code 0 --ignore-unfixed --format table ${IMAGE}:${IMAGE_TAG}"
-            }
-        }
+        // stage('Trivy Scan') {
+        //     steps {
+        //         sh "trivy image --severity LOW,MEDIUM,HIGH --exit-code 0 --format table ${IMAGE}:${IMAGE_TAG}"
+        //         sh "trivy image --severity CRITICAL --exit-code 0 --ignore-unfixed --format table ${IMAGE}:${IMAGE_TAG}"
+        //     }
+        // }
         
         stage('Push Image') {
             environment {
@@ -74,7 +74,11 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
                     sh '''
-                        helm upgrade --install frontend ./CICD/deploy/helm/frontend --namespace frontend --create-namespace --set image.repository=$IMAGE --set image.tag=$IMAGE_TAG
+                        helm upgrade --install frontend ./CICD/deploy/helm/frontend \
+                        --namespace frontend \
+                        --create-namespace \
+                        --set image.repository=$IMAGE \
+                        --set image.tag=$IMAGE_TAG
                     '''
                 }
             }

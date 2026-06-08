@@ -74,12 +74,7 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
                     sh '''
-                        helm upgrade --install frontend 
-                        ./CICD/deploy/helm/frontend \ 
-                            --namespace frontend \
-                            --create-namespace \
-                            --set image.repository=$IMAGE \
-                            --set image.tag=$IMAGE_TAG
+                        helm upgrade --install frontend ./CICD/deploy/helm/frontend --namespace frontend --create-namespace --set image.repository=$IMAGE --set image.tag=$IMAGE_TAG
                     '''
                 }
             }

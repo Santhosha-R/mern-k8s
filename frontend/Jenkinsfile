@@ -11,10 +11,10 @@ pipeline {
     agent any
 
     environment {
-        SONAR_HOST_URL  = "http://13.235.42.215:9000"
+        SONAR_HOST_URL  = "http://3.110.219.72:9000"
         
-        REGISTRY        = "637423622313.dkr.ecr.ap-south-1.amazonaws.com"
-        IMAGE           = "637423622313.dkr.ecr.ap-south-1.amazonaws.com/mern-frontend"
+        REGISTRY        = "082228066500.dkr.ecr.ap-south-1.amazonaws.com"
+        IMAGE           = "082228066500.dkr.ecr.ap-south-1.amazonaws.com/mern-frontend"
         IMAGE_TAG       = "${env.BUILD_NUMBER}"
 
         AWS_REGION      = "ap-south-1"
@@ -30,24 +30,24 @@ pipeline {
 
     stages {
 
-        // stage('SonarQube Analysis') {
-        //     steps {
-                
-        //         withCredentials([string(credentialsId: 'sonar_token', variable: 'SONAR_TOKEN')]) {
-        //             sh "cd frontend; sonar -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_TOKEN}"
-        //         }
-        //     }
-        // }
-
-        stage('Docker Build') {
+        stage('SonarQube Analysis') {
             steps {
-                dir('frontend') { 
-                    script {
-                        image = docker.build("${IMAGE}:${IMAGE_TAG}", ".")
-                    }
+                
+                withCredentials([string(credentialsId: 'sonar_token', variable: 'SONAR_TOKEN')]) {
+                    sh "cd frontend; sonar -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_TOKEN}"
                 }
             }
         }
+
+        // stage('Docker Build') {
+        //     steps {
+        //         dir('frontend') { 
+        //             script {
+        //                 image = docker.build("${IMAGE}:${IMAGE_TAG}", ".")
+        //             }
+        //         }
+        //     }
+        // }
 
         // stage('Trivy Scan') {
         //     steps {
@@ -56,33 +56,33 @@ pipeline {
         //     }
         // }
         
-        stage('Push Image') {
-            environment {
-                AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
-                AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
-            }
-            steps {
-                sh '''
-                    aws ecr get-login-password --region ${AWS_REGION} \
-                      | docker login --username AWS --password-stdin ${REGISTRY}
-                    docker push ${IMAGE}:${IMAGE_TAG}
-                '''
-            }
-        }
+        // stage('Push Image') {
+        //     environment {
+        //         AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+        //         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+        //     }
+        //     steps {
+        //         sh '''
+        //             aws ecr get-login-password --region ${AWS_REGION} \
+        //               | docker login --username AWS --password-stdin ${REGISTRY}
+        //             docker push ${IMAGE}:${IMAGE_TAG}
+        //         '''
+        //     }
+        // }
 
-        stage('Helm Deploy') {
-            steps {
-                withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
-                    sh '''
-                        helm upgrade --install frontend ./CICD/deploy/helm/frontend \
-                        --namespace frontend \
-                        --create-namespace \
-                        --set image.repository=$IMAGE \
-                        --set image.tag=$IMAGE_TAG
-                    '''
-                }
-            }
-        }
+        // stage('Helm Deploy') {
+        //     steps {
+        //         withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
+        //             sh '''
+        //                 helm upgrade --install frontend ./CICD/deploy/helm/frontend \
+        //                 --namespace frontend \
+        //                 --create-namespace \
+        //                 --set image.repository=$IMAGE \
+        //                 --set image.tag=$IMAGE_TAG
+        //             '''
+        //         }
+        //     }
+        // }
     }
 
 }
